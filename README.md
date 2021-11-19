@@ -1,7 +1,9 @@
 # ricohprint-MPC401SR
 ##Ricoh Print Counter Reader and Report
 
-ricohprint-MPC401SR is an automated counter reader and reporter for Ricoh Printer Tested Model MP C401sr
+ricohprint-MPC401SR is an automated counter reader and reporter for Ricoh Printer Tested Model MP C401sr in portuguese language.
+
+For other models or languages please send me the counter page.
 
 ## Features
 
@@ -21,6 +23,7 @@ clone https://github.com/LeonelF/ricohprint-MPC401SR.git
 cd ricohprint-MPC401SR
 pip install -r requirements.txt
 ```
+Change the values on the ricohconfig.ini.example and rename it to ricohconfig.ini
 
 ## How to use
 

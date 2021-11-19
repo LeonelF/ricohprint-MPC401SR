@@ -31,7 +31,7 @@ Change the values on the ricohconfig.ini.example and rename it to ricohconfig.in
 python3 ricoh.py <arg>
 ```
 
-####Arguments:
+#### Arguments:
 
 - -p (Dry run, only prints the current print count)
 - -te (Test email, only sends the email with the current print count)

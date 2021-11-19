@@ -6,5 +6,6 @@ password=123456password
 address=username@gmail.com
 sendto=contact1@email.com
 sendcc=contact2@email.com
-[GERAL]
-impressora=Ricoh MP C401SR
+[GENERAL]
+printer=Ricoh MP C401SR
+printerip=192.168.1.10

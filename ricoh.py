@@ -15,14 +15,15 @@ if (len(sys.argv) == 1):
 argv = sys.argv[1]
 
 conf = {
-	'mailserver': None,
-	'mailport': None,
-	'mailuser': None,
-	'mailpassword': None,
-	'mailaddress': None,
+    'mailserver': None,
+    'mailport': None,
+    'mailuser': None,
+    'mailpassword': None,
+    'mailaddress': None,
     'mailsendto': None,
     'mailsendcc': None,
-    'impressora': None
+    'printer': None,
+    'printerip': None
 }
 # read configuration
 config_fn = "ricohconf.ini"
@@ -38,7 +39,8 @@ conf['mailpassword'] = config['EMAIL']['password']
 conf['mailaddress'] = config['EMAIL']['address']
 conf['mailsendto'] = config['EMAIL']['sendto']
 conf['mailsendcc'] = config['EMAIL']['sendcc']
-conf['impressora'] = config['GERAL']['impressora']
+conf['printer'] = config['GENERAL']['printer']
+conf['printerip'] = config['GENERAL']['printerip']
 
 def getval(text):
     text = str(text).replace('<td nowrap="">', '')
@@ -53,9 +55,9 @@ def existsRecord():
     records = len(csql.fetchall())
     csql.close()
     if (records > 0):
-    	return True
+        return True
     else:
-    	return False
+        return False
 
 def lastRecord():
     """Returns next ID on the SqLite database."""
@@ -74,10 +76,11 @@ def addRecord(id, pb, cores):
     connslq.commit()
 
 def sendEmail(msgtxt, msghtml):
+    """Sends email with print counts"""
     context = ssl.create_default_context()
 
     message = MIMEMultipart("alternative")
-    message["Subject"] = "Envio de contagens da impressora {impressora} - Data {data}".format(impressora=conf['impressora'], data=datetime.datetime.now().strftime('%Y-%m-%d')) 
+    message["Subject"] = "Envio de contagens da impressora {impressora} - Data {data}".format(impressora=conf['printer'], data=datetime.datetime.now().strftime('%Y-%m-%d')) 
     message["From"] = conf['mailaddress']
     message["To"] = conf['mailsendto']
     message["Cc"] = conf['mailsendcc']
@@ -92,92 +95,94 @@ def sendEmail(msgtxt, msghtml):
         server.sendmail(
             conf['mailaddress'], conf['mailsendto'], message.as_string()
         )
-response = urllib.request.urlopen('http://192.168.31.14/web/guest/pt/websys/status/getUnificationCounter.cgi')
-soup = BeautifulSoup(response,features="html.parser")
-tables = soup.find_all("table")
-copiador = []
-impressora = []
-final = []
 
-for index, table in enumerate(soup.find_all("table")):
-    if (table.find("div", text="Copiador")):
-        counter = -1
-        for i , td in enumerate(tables[index + 1].find_all("td")):
-            if ("Preto e branco" in td):
-                counter = i + 2
-                txt = "P&B"
-                continue
-            if ("Cor integral" in td):
-                counter = i + 2
-                txt = "Cores"
-                continue
-            if ("Cor única" in td):
-                counter = i + 2
-                txt = "Cor única"
-                continue
-            if ("2 Cores" in td):
-                counter = i + 2
-                txt = "2 Cores"
-                continue
-            if counter == i:
-                if len(copiador) < 4:
-                    copiador.append(getval(td))
-                counter = -1
-                txt = ""
-                continue
-    if (table.find("div", text="Impressora")):
-        counter = -1
-        for i , td in enumerate(tables[index + 1].find_all("td")):
-            if ("Preto e branco" in td):
-                counter = i + 2
-                txt2 = "P&B"
-                continue
-            if ("Cor integral" in td):
-                counter = i + 2
-                txt2 = "Cores"
-                continue
-            if ("Cor única" in td):
-                counter = i + 2
-                txt2 = "Cor única"
-                continue
-            if ("2 Cores" in td):
-                counter = i + 2
-                txt2 = "2 Cores"
-                continue
-            if counter == i:
-                if len(impressora) < 4:
-                    impressora.append(getval(td))
-                counter = -1
-                txt2 = ""
-                continue
-final.append(int(copiador[0]) + int(impressora[0]))
-final.append(int(copiador[1]) + int(copiador[2]) + int(copiador[3]) + int(impressora[1]) + int(impressora[2]) + int(impressora[3]))
-if existsRecord() == False:
-    lastr = lastRecord()
-    text = """\
-        Envio de contagens da impressora {impressora}:
+if __name__ == "__main__":
+    response = urllib.request.urlopen('http://', conf['printerip'],'/web/guest/pt/websys/status/getUnificationCounter.cgi')
+    soup = BeautifulSoup(response,features="html.parser")
+    tables = soup.find_all("table")
+    copiador = []
+    impressora = []
+    final = []
 
-        Contagem Preto e Branco Atual: {pbatual} (Mês anterior: {pbanterior}) resultado mês: {pbresultado}
-        Contagem Cores Atual: {coratual} (Mês anterior: {coranterior}) resultado mês: {corresultado}
-        
-        Com os melhores cumprimentos,
-        """.format(impressora=conf['impressora'], pbatual=final[0], pbanterior=lastr[0][1], pbresultado=int(final[0]) - int(lastr[0][1]), coratual=final[1], coranterior=lastr[0][2], corresultado=int(final[1]) - int(lastr[0][2]))
-    html= """\
-        <html>
-            <body>
-                Envio de contagens da impressora {impressora}:
-                <br><br>
-                Contagem Preto e Branco Atual: <strong>{pbatual}</strong> (Mês anterior: {pbanterior}) <strong>resultado mês: <u>{pbresultado}</u></strong><br>
-                Contagem Cores Atual: <strong>{coratual}</strong> (Mês anterior: {coranterior}) <strong>resultado mês: <u>{corresultado}</u></strong>
-                <br><br>
-                Com os melhores cumprimentos,
-            </body>
-        </html>
-        """.format(impressora=conf['impressora'], pbatual=final[0], pbanterior=lastr[0][1], pbresultado=int(final[0]) - int(lastr[0][1]), coratual=final[1], coranterior=lastr[0][2], corresultado=int(final[1]) - int(lastr[0][2]))
-    if (argv == "-p"):
-        print(text)
-    if (argv == "-te"):
-        sendEmail(text, html)
-    if (argv == "-e"):
-        sendEmail(text, html)
-        addRecord(int(lastr[0][0]) + 1, final[0], final[1])
+    for index, table in enumerate(soup.find_all("table")):
+        if (table.find("div", text="Copiador")):
+            counter = -1
+            for i , td in enumerate(tables[index + 1].find_all("td")):
+                if ("Preto e branco" in td):
+                    counter = i + 2
+                    txt = "P&B"
+                    continue
+                if ("Cor integral" in td):
+                    counter = i + 2
+                    txt = "Cores"
+                    continue
+                if ("Cor única" in td):
+                    counter = i + 2
+                    txt = "Cor única"
+                    continue
+                if ("2 Cores" in td):
+                    counter = i + 2
+                    txt = "2 Cores"
+                    continue
+                if counter == i:
+                    if len(copiador) < 4:
+                        copiador.append(getval(td))
+                    counter = -1
+                    txt = ""
+                    continue
+        if (table.find("div", text="Impressora")):
+            counter = -1
+            for i , td in enumerate(tables[index + 1].find_all("td")):
+                if ("Preto e branco" in td):
+                    counter = i + 2
+                    txt2 = "P&B"
+                    continue
+                if ("Cor integral" in td):
+                    counter = i + 2
+                    txt2 = "Cores"
+                    continue
+                if ("Cor única" in td):
+                    counter = i + 2
+                    txt2 = "Cor única"
+                    continue
+                if ("2 Cores" in td):
+                    counter = i + 2
+                    txt2 = "2 Cores"
+                    continue
+                if counter == i:
+                    if len(impressora) < 4:
+                        impressora.append(getval(td))
+                    counter = -1
+                    txt2 = ""
+                    continue
+    final.append(int(copiador[0]) + int(impressora[0]))
+    final.append(int(copiador[1]) + int(copiador[2]) + int(copiador[3]) + int(impressora[1]) + int(impressora[2]) + int(impressora[3]))
+    if existsRecord() == False:
+        lastr = lastRecord()
+        text = """\
+            Envio de contagens da impressora {impressora}:
+
+            Contagem Preto e Branco Atual: {pbatual} (Mês anterior: {pbanterior}) resultado mês: {pbresultado}
+            Contagem Cores Atual: {coratual} (Mês anterior: {coranterior}) resultado mês: {corresultado}
+            
+            Com os melhores cumprimentos,
+            """.format(impressora=conf['printer'], pbatual=final[0], pbanterior=lastr[0][1], pbresultado=int(final[0]) - int(lastr[0][1]), coratual=final[1], coranterior=lastr[0][2], corresultado=int(final[1]) - int(lastr[0][2]))
+        html= """\
+            <html>
+                <body>
+                    Envio de contagens da impressora {impressora}:
+                    <br><br>
+                    Contagem Preto e Branco Atual: <strong>{pbatual}</strong> (Mês anterior: {pbanterior}) <strong>resultado mês: <u>{pbresultado}</u></strong><br>
+                    Contagem Cores Atual: <strong>{coratual}</strong> (Mês anterior: {coranterior}) <strong>resultado mês: <u>{corresultado}</u></strong>
+                    <br><br>
+                    Com os melhores cumprimentos,
+                </body>
+            </html>
+            """.format(impressora=conf['printer'], pbatual=final[0], pbanterior=lastr[0][1], pbresultado=int(final[0]) - int(lastr[0][1]), coratual=final[1], coranterior=lastr[0][2], corresultado=int(final[1]) - int(lastr[0][2]))
+        if (argv == "-p"):
+            print(text)
+        if (argv == "-te"):
+            sendEmail(text, html)
+        if (argv == "-e"):
+            sendEmail(text, html)
+            addRecord(int(lastr[0][0]) + 1, final[0], final[1])

@@ -97,7 +97,7 @@ def sendEmail(msgtxt, msghtml):
         )
 
 if __name__ == "__main__":
-    response = urllib.request.urlopen('http://', conf['printerip'],'/web/guest/pt/websys/status/getUnificationCounter.cgi')
+    response = urllib.request.urlopen('http://' + conf['printerip'] + '/web/guest/pt/websys/status/getUnificationCounter.cgi')
     soup = BeautifulSoup(response,features="html.parser")
     tables = soup.find_all("table")
     copiador = []

@@ -23,7 +23,7 @@ clone https://github.com/LeonelF/ricohprint-MPC401SR.git
 cd ricohprint-MPC401SR
 pip install -r requirements.txt
 ```
-Change the values on the ricohconfig.ini.example and rename it to ricohconfig.ini
+Change the values on the ricohconf.ini.example and rename it to ricohconf.ini
 
 ## How to use
 

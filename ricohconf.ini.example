@@ -1,0 +1,10 @@
+[EMAIL]
+server=smtp.gmail.com
+port=465
+username=username@gmail.com
+password=123456password
+address=username@gmail.com
+sendto=contact1@email.com
+sendcc=contact2@email.com
+[GERAL]
+impressora=Ricoh MP C401SR

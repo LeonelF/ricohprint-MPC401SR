@@ -89,11 +89,12 @@ def sendEmail(msgtxt, msghtml):
 
     message.attach(part1)
     message.attach(part2)
-
+    
+    toaddrs = [conf['mailsendto']] + [conf['mailsendcc']]
     with smtplib.SMTP_SSL(conf['mailserver'], conf['mailport'], context=context) as server:
         server.login(conf['mailuser'], conf['mailpassword'])
         server.sendmail(
-            conf['mailaddress'], conf['mailsendto'], message.as_string()
+            conf['mailaddress'], toaddrs, message.as_string()
         )
 
 if __name__ == "__main__":
@@ -166,7 +167,9 @@ if __name__ == "__main__":
             Contagem Cores Atual: {coratual} (Mês anterior: {coranterior}) resultado mês: {corresultado}
             
             Com os melhores cumprimentos,
+            
             """.format(impressora=conf['printer'], pbatual=final[0], pbanterior=lastr[0][1], pbresultado=int(final[0]) - int(lastr[0][1]), coratual=final[1], coranterior=lastr[0][2], corresultado=int(final[1]) - int(lastr[0][2]))
+        dataenvio = "Última data de envio: {data}".format(data=lastr[0][4])
         html= """\
             <html>
                 <body>
@@ -180,9 +183,14 @@ if __name__ == "__main__":
             </html>
             """.format(impressora=conf['printer'], pbatual=final[0], pbanterior=lastr[0][1], pbresultado=int(final[0]) - int(lastr[0][1]), coratual=final[1], coranterior=lastr[0][2], corresultado=int(final[1]) - int(lastr[0][2]))
         if (argv == "-p"):
-            print(text)
+            print(text + dataenvio)
         if (argv == "-te"):
+            print(text)
             sendEmail(text, html)
+            print("Test email Sent")
         if (argv == "-e"):
+            print(text)
             sendEmail(text, html)
+            print("Email sent")
             addRecord(int(lastr[0][0]) + 1, final[0], final[1])
+            print("Added new record to db")
